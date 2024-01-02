@@ -103,11 +103,11 @@ def segment(features, params={}) :
 
 if __name__ == '__main__' : 
     
-    path = './images/101027.jpg'
+    path = '../images/101027.jpg'
     estimator = load_depth_estimator()
-    features, t = compose_features(path, estimator, shape=(256, 256), weights=[0, 1, 0, 0])
+    features, t = compose_features(path, estimator, shape=(256, 256), weights=[0.8, 1.2, 0.8, 0.1])
     
-    params = {'supper_pixel':2, 'embedding_method':'spectral', 'n_components':10, 'n_neighbors':20, 'cluster_method':'knn', 'n_clusters':7, 'pos_weight':1}
+    params = {'supper_pixel':2, 'embedding_method':'spectral', 'n_components':10, 'n_neighbors':20, 'cluster_method':'knn', 'n_clusters':7, 'pos_weight':0.5}
     labels_shaped, embedding, labels = segment(features, params=params)
     
     fig, axes = plt.subplots(1, len(t)+1, figsize=(16, 4))
@@ -122,4 +122,5 @@ if __name__ == '__main__' :
     axes[-1].axis('off')
     axes[-1].set_title(f'Segementation')
     
-    plt.savefig('images/segmentation.png')
+    plt.savefig('../images/segmentation.png')
+    # plt.show()
