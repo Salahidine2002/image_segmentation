@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 from features import compose_features, load_depth_estimator
 import matplotlib.pyplot as plt
+import argparse
 
 
 def img2nodes(features, params) :
@@ -103,9 +104,14 @@ def segment(features, params={}) :
 
 if __name__ == '__main__' : 
     
-    path = '../images/101027.jpg'
+    parser = argparse.ArgumentParser(description='Unsupervised Segmentation')
+    parser.add_argument('--input', metavar='FILENAME',
+                    help='input image file name', required=True)
+    args = parser.parse_args()
+    
+    # path = '../images/101027.jpg'
     estimator = load_depth_estimator()
-    features, t = compose_features(path, estimator, shape=(256, 256), weights=[0.8, 1.2, 0.8, 0.1])
+    features, t = compose_features(args.input, estimator, shape=(256, 256), weights=[0.8, 1.2, 0.8, 0.1])
     
     params = {'supper_pixel':2, 'embedding_method':'spectral', 'n_components':10, 'n_neighbors':20, 'cluster_method':'knn', 'n_clusters':7, 'pos_weight':0.5}
     labels_shaped, embedding, labels = segment(features, params=params)
