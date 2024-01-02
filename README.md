@@ -12,7 +12,7 @@ The key strengths of this code lie in the model's explainability, transparency, 
 
 ## Requirements
 
-python3, scikit-learn, opencv2, scikit-image, transformers, 
+python3, scikit-learn, opencv2, scikit-image, transformers
 
 ## Getting started
 
