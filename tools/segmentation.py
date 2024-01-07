@@ -10,14 +10,16 @@ import argparse
 
 
 def img2nodes(features, params) :
-    """_summary_
+    """Converts the pixels into nodes for the graph embedding, can also group small blocks of pixels into a superpixel for computational efficiency. 
 
     Args:
-        features (_type_): _description_
-        params (_type_): _description_
+        features (ndarray): the stacked image transformations chosen as features
+        params (dict): the parameters of the pixels to nodes transformation, contains : 
+                        - 'pos_weight' : the weight assigned to the positional arguments 
+                        - 'supper_pixel' : the size of the super_pixel.
 
     Returns:
-        _type_: _description_
+        s_pixels, s_pixels_indexes: the graph nodes
     """
     
     pixels = [[i*params['pos_weight'], j*params['pos_weight']]+list(features[i, j]) for i in range(features.shape[0]) for j in range(features.shape[1])]
@@ -41,14 +43,17 @@ def img2nodes(features, params) :
     return s_pixels , s_pixels_indexes
     
 def manifold_embedding(nodes, params): 
-    """_summary_
+    """construct the graph and project the data into a lower-dimensional space.
 
     Args:
-        nodes (_type_): _description_
-        params (_type_): _description_
+        nodes (ndarray): the graph nodes
+        params (dict): the parameters of the spectral embedding : 
+                        - 'embedding_method' : manifold learning method => 'spectral' or 'isomap'
+                        - 'n_components' : dimension of the projection space 
+                        - 'n_neighbors' : number of neighbors used for the graph construction
 
     Returns:
-        _type_: _description_
+        ndarray: projected data
     """
 
     if params['embedding_method']=='spectral' : 
@@ -61,11 +66,15 @@ def manifold_embedding(nodes, params):
     return X_proj
 
 def cluster(embedding, params) : 
-    """_summary_
+    """Using the embedding given as input, this function will cluster the data into k clusters (image segments)
 
     Args:
-        embedding (_type_): _description_
-        params (_type_): _description_
+        embedding (ndarray): projected pixels
+        params (dict): the parameters of the clustering
+                        - 'cluster_method' : clustering method => 'knn' or 'mixture'
+                        - 'n_clusters' : number of clusters
+    Returns:
+        list: list of labels of each projected node
     """
     
     if params['cluster_method']=='knn' : 
@@ -78,14 +87,23 @@ def cluster(embedding, params) :
     return labels 
 
 def segment(features, params={}) : 
-    """_summary_
+    """main function that performs the segmentation by grouping the different blocks
 
     Args:
-        features (_type_): _description_
-        params (dict, optional): _description_. Defaults to {}.
+        features (ndarray): the stacked image transformations chosen as features
+        params (dict): parameters of the segmentation, contains : 
+                        - 'pos_weight' : the weight assigned to the positional arguments 
+                        - 'supper_pixel' : the size of the super_pixel.
+                        - 'embedding_method' : manifold learning method => 'spectral' or 'isomap'
+                        - 'n_components' : dimension of the projection space 
+                        - 'n_neighbors' : number of neighbors used for the graph construction
+                        - 'cluster_method' : clustering method => 'knn' or 'mixture'
+                        - 'n_clusters' : number of clusters
 
     Returns:
-        _type_: _description_
+        labels_shaped: mask with the same shape of the image where each pixel refers to a cluster
+        embedding : the projected data
+        labels : 1D array of all the labels 
     """
 
     nodes, indexes = img2nodes(features, params)
@@ -107,13 +125,18 @@ if __name__ == '__main__' :
     parser = argparse.ArgumentParser(description='Unsupervised Segmentation')
     parser.add_argument('--input', metavar='FILENAME',
                     help='input image file name', required=True)
+    parser.add_argument('--output', metavar='FILENAME',
+                    help='output image file name', required=True)
     args = parser.parse_args()
     
     # path = '../images/101027.jpg'
     estimator = load_depth_estimator()
+    
+    #TODO: Modify the features weights to adapt to image domain
     features, t = compose_features(args.input, estimator, shape=(256, 256), weights=[0.8, 1.2, 0.8, 0.1])
     
-    params = {'supper_pixel':2, 'embedding_method':'spectral', 'n_components':10, 'n_neighbors':20, 'cluster_method':'knn', 'n_clusters':7, 'pos_weight':0.5}
+    #TODO: Modify the spectral embedding parameters to adatpt to image domain
+    params = {'supper_pixel':2, 'embedding_method':'spectral', 'n_components':10, 'n_neighbors':50, 'cluster_method':'knn', 'n_clusters':7, 'pos_weight':0.4}
     labels_shaped, embedding, labels = segment(features, params=params)
     
     fig, axes = plt.subplots(1, len(t)+1, figsize=(16, 4))
@@ -128,5 +151,5 @@ if __name__ == '__main__' :
     axes[-1].axis('off')
     axes[-1].set_title(f'Segementation')
     
-    plt.savefig('../images/segmentation.png')
+    plt.savefig(args.output)
     # plt.show()

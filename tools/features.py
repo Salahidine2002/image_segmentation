@@ -7,24 +7,22 @@ import matplotlib.pyplot as plt
 
 
 def hsv_transform(img) : 
-    """_summary_
+    """transform RGB image to HSV 
 
     Args:
-        img (_type_): _description_
+        img (ndarray): input image
 
     Returns:
-        _type_: _description_
+        ndarray: hsv formatted image
     """
     return (255*rgb2hsv(img)).astype(int)
 
 def load_depth_estimator() : 
-    """_summary_
+    """load the DPT model
 
-    Args:
-        img (_type_): _description_
 
     Returns:
-        _type_: _description_
+        object: loaded estimator
     """
     
     estimator = pipeline(task="depth-estimation", model="Intel/dpt-large")
@@ -32,27 +30,27 @@ def load_depth_estimator() :
     return estimator
 
 def depth_transform(img_path, estimator, shape) : 
-    """_summary_
+    """estimate the depth of the image
 
     Args:
-        img_path (_type_): _description_
-        estimator (_type_): _description_
+        img_path (str): input image path
+        estimator (object): the depth estimator
 
     Returns:
-        _type_: _description_
+        ndarray: image-sized array of depth of each pixel
     """
     d_img = np.array(estimator(img_path)['depth'])
     d_img = cv2.resize(d_img, shape)
     return d_img
 
 def savola_transform(img) : 
-    """_summary_
+    """binarize the image to detect the edges
 
     Args:
-        img (_type_): _description_
+        img (ndarray): input image
 
     Returns:
-        _type_: _description_
+        ndarray: binarized image 
     """
     
     gray_image = rgb2gray(img)
@@ -62,11 +60,11 @@ def savola_transform(img) :
     return (255*binarized_image).astype(int)
 
 def compose_features(img_path, estimator, shape=(256, 256), weights=[1, 1, 1, 1])  :
-    """_summary_
+    """stack the different layers of image transformations (features)
 
     Args:
-        img (_type_): _description_
-        estimator (_type_): _description_
+        img (ndarray): input image
+        estimator : depth estimator
     """
     img = cv2.imread(img_path)
     img = cv2.resize(img, shape)
