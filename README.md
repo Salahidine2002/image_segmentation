@@ -16,4 +16,4 @@ python3, scikit-learn, opencv2, scikit-image, transformers
 
 ## Getting started
 
-    $ python tools/segmentation.py --input '../images/101027.jpg'
+    $ python tools/segmentation.py --input '../images/101027.jpg' --output '../images/output.jpg'
